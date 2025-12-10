@@ -1,0 +1,13 @@
+# Virtual environment
+venv/
+.venv/
+env/
+ENV/
+agentic-env/
+.conda/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
