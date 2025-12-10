@@ -70,7 +70,7 @@ def get_financial_statement(symbols: str = ['fb', 'aapl', 'amzn', 'nflx', 'goog'
 @tool
 def convert_text_to_pdf(text: str, filename: str):
     """
-    Write plain or markdown text to PDF file and generate the PDF document.
+    Use this to write plain or markdown text to PDF file and generate the PDF document.
     Call this only when the user asks for PDF document generation.
     """
     pdf = MarkdownPdf()

@@ -24,7 +24,7 @@ fundamental_agent = create_react_agent(
 
 market_industry_agent = create_react_agent(
     model=llm,
-    tools=[fetch_latest_headlines, wikipedia_tool],
+    tools=[fetch_latest_headlines, wikipedia_tool, convert_text_to_pdf],
     prompt=(
         "You are a finance research agent.\n\n"
         "INSTRUCTIONS:\n"
@@ -60,4 +60,7 @@ for chunk in supervisor.stream({
     ]},
     config=config
 ):
-    print(chunk)
+    # print(chunk)
+    for update in chunk.values():
+        for message in update.get('messages', []):
+            message.pretty_print()
