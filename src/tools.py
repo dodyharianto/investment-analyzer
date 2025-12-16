@@ -7,6 +7,17 @@ import requests
 from datetime import datetime
 from markdown_pdf import MarkdownPdf, Section
 from yahooquery import Ticker
+from matplotlib import pyplot as plt
+import seaborn as sns
+from pathlib import Path
+
+SRC_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SRC_DIR.parent
+OUTPUTS_DIR = PROJECT_ROOT / "outputs"
+CSV_DIR = OUTPUTS_DIR / "csv"
+VIS_DIR = OUTPUTS_DIR / "visualizations"
+CSV_DIR.mkdir(parents=True, exist_ok=True)
+VIS_DIR.mkdir(parents=True, exist_ok=True)
 
 @tool
 def wikipedia_tool(query: Annotated[str, "The Wikipedia search to execute to find key summary information."]):
@@ -54,7 +65,7 @@ def fetch_latest_headlines(category: str = None, country: str = 'sg', page_size:
         return []
 
 @tool
-def get_financial_statement(symbols: str = ['fb', 'aapl', 'amzn', 'nflx', 'goog']):
+def get_financial_statement(file_name: str, symbols: str = ['fb', 'aapl', 'amzn', 'nflx', 'goog']):
     """
     Use this to retrieve financial data from Yahoo Finance, such as accessing balance sheets, income statements, and cash flow statements based on the ticker symbol for the company for analysis.
     """
@@ -65,16 +76,38 @@ def get_financial_statement(symbols: str = ['fb', 'aapl', 'amzn', 'nflx', 'goog'
     balance_df['QuickRatio'] = balance_df['CurrentAssets'] / balance_df['Inventory'] / balance_df['CurrentLiabilities']
     balance_df['DebtToEquityRatio'] = balance_df['TotalDebt'] / balance_df['StockholdersEquity']
 
-    return {'csv_filename': f'stock_data.csv', 'csv_content': balance_df}
+    csv_path = CSV_DIR / 'balance_sheet.csv'
+    balance_df.to_csv(csv_path, index=False)
+
+    return {'csv_filename': csv_path.name, 'csv_columns': balance_df.columns.tolist()}
 
 @tool
-def convert_text_to_pdf(text: str, filename: str):
+def visualize_financial_data(file_name: str, column: str, title: str):
+    """
+    Use this to create a matplotlib figure to visualize the value of a financial metric over time.
+    """
+    csv_path = CSV_DIR / "balance_sheet.csv"
+    df = pd.read_csv(csv_path)
+
+    plt.figure(figsize=(8, 5))
+    df.plot(y=column, legend=True, marker='o')
+    plt.xlabel('Date')
+    plt.ylabel('Value')
+    plt.grid(True)
+    img_path = VIS_DIR / f"{title}.png"
+    plt.savefig(img_path)
+    plt.show()
+
+    return {'figure_file_name': f'{title}.png'}
+
+@tool
+def convert_text_to_pdf(text: str, file_name: str):
     """
     Use this to write plain or markdown text to PDF file and generate the PDF document.
     Call this only when the user asks for PDF document generation.
     """
     pdf = MarkdownPdf()
     pdf.add_section(Section(text))
-    pdf.save(filename)
+    pdf.save(file_name)
 
-    return {'pdf_filename': filename}
+    return {'pdf_file_name': file_name}

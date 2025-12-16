@@ -1,7 +1,7 @@
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
 from langgraph_supervisor import create_supervisor
-from tools import wikipedia_tool, fetch_latest_headlines, convert_text_to_pdf, get_financial_statement
+from tools import wikipedia_tool, fetch_latest_headlines, get_financial_statement, visualize_financial_data, convert_text_to_pdf
 from langgraph.checkpoint.memory import InMemorySaver
 from dotenv import load_dotenv
 
@@ -10,10 +10,10 @@ llm = ChatOpenAI(model="gpt-4o-mini")
 
 fundamental_agent = create_react_agent(
     model=llm,
-    tools=[get_financial_statement],
+    tools=[get_financial_statement, visualize_financial_data, convert_text_to_pdf],
     prompt=(
         "You are an agent that can answer general questions related to finance.\n\n"
-        "You are an agent that can tell us the date of today.\n\n"
+        "You can visualize data and generate PDF report.\n\n"
         "INSTRUCTIONS:\n"
         "- Assist ONLY with tasks that require basic knowledge about finance, such as getting the financial statement.\n"
         "- After you're done with your tasks, respond to the supervisor directly\n"
@@ -60,7 +60,6 @@ for chunk in supervisor.stream({
     ]},
     config=config
 ):
-    # print(chunk)
     for update in chunk.values():
         for message in update.get('messages', []):
             message.pretty_print()
